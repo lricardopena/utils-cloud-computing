@@ -55,7 +55,7 @@ class S3(FileStorageManager):
     def get_filenames_prefix(self, prefix):
         pages = self.paginator.paginate(
             Bucket=self.bucket,
-            Prefix=self.base_path + prefix
+            Prefix=prefix
         )
         file_names = []
 
@@ -64,12 +64,12 @@ class S3(FileStorageManager):
                 file_names.append(paged_file['Key'])
                 print(paged_file['Key'])
 
-        return [filename[len(self.base_path):] for filename in file_names]
+        return [filename for filename in file_names]
 
     def file_exists(self, file_name: str) -> bool:
         pages = self.paginator.paginate(
             Bucket=self.bucket,
-            Prefix=os.path.join(self.base_path, file_name)
+            Prefix=file_name
         )
 
         for page in pages:
@@ -82,14 +82,14 @@ class S3(FileStorageManager):
         for file_name in file_names:
             copy_source = {
                 'Bucket': self.bucket,
-                'Key': os.path.join(self.base_path, file_name)
+                'Key': file_name
             }
 
             self.client.copy(copy_source, self.bucket, os.path.join(prefix, file_name))
             self.delete(file_name)
 
     def delete(self, file_name: str):
-        self.client.delete_object(Bucket=self.bucket, Key=os.path.join(self.base_path, file_name))
+        self.client.delete_object(Bucket=self.bucket, Key=file_name)
 
     def create_bucket(self, bucket_name: str):
         """Create an S3 bucket in a specified region
