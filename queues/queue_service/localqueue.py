@@ -17,7 +17,7 @@ class QueueSingleton(type, QueueFacade):
         return cls._instances[cls]
 
 
-class Local(metaclass=QueueSingleton):
+class LocalQueue(metaclass=QueueSingleton):
     queue: dict
 
     def __init__(self):
