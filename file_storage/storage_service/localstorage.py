@@ -5,7 +5,7 @@ from io import BytesIO
 from file_storage.file_storage_manager import FileStorageManager
 
 
-class Local(FileStorageManager):
+class LocalStorage(FileStorageManager):
     def __init__(self, base_path: str):
         self.base_path = base_path
         super().__init__()
