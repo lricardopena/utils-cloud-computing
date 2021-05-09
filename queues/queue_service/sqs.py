@@ -1,7 +1,6 @@
 import json
 
 import boto3
-import botocore
 
 from config import REGION_AWS
 from queues.queue_manager import QueueFacade
@@ -9,21 +8,16 @@ from queues.queue_manager import QueueFacade
 
 class SimpleQueueAmazon(QueueFacade):
 
-    def __init__(self):
+    def __init__(self, endpoint_url=None, region_name=REGION_AWS):
+        self.cache_url_names = {}
         self.connected = True
-        self.client = boto3.client('sqs', region_name=REGION_AWS)
-        self.try_connect()
+        self.client = boto3.client('sqs', endpoint_url=endpoint_url, region_name=region_name)
 
-    @staticmethod
-    def get_url_queue(name: str):
-        return f'https://sqs.{REGION_AWS}.amazonaws.com/321479814345/{name}'
-
-    def try_connect(self):
-        if self.connected is False:
-            try:
-                self.client = boto3.client('sqs', region_name=REGION_AWS)
-            except botocore.exceptions.ClientError:
-                self.connected = False
+    def get_url_queue(self, name: str):
+        if name not in self.cache_url_names:
+            response = self.client.get_queue_url(QueueName=name)
+            self.cache_url_names[name] = response["QueueUrl"]
+        return self.cache_url_names[name]
 
     def send_messages(self, items: list, name: str, batch_size: int = 10):
         items_to_send = []
@@ -43,10 +37,6 @@ class SimpleQueueAmazon(QueueFacade):
             self.send_batch_to_sqs(items_to_send, name)
 
     def send_batch_to_sqs(self, items: list, name: str):
-        self.try_connect()
-        if self.connected is False:
-            return None
-
         response = self.client.send_message_batch(
             QueueUrl=self.get_url_queue(name),
             Entries=items
@@ -54,7 +44,6 @@ class SimpleQueueAmazon(QueueFacade):
         return response
 
     def pull_messages(self, name: str, batch_size) -> list:
-        self.try_connect()
         if self.connected is False:
             return []
         items = []
@@ -76,10 +65,7 @@ class SimpleQueueAmazon(QueueFacade):
                     rh = message["ReceiptHandle"]
                     body = message["Body"]
                     body = json.loads(body)
-                    if "item" in body:
-                        item = body['item']
-                    else:
-                        item = body
+                    item = body
                     item['ReceiptHandler'] = rh
                     items.append(item)
 
@@ -104,3 +90,13 @@ class SimpleQueueAmazon(QueueFacade):
         ])
         return int(x['Attributes']['ApproximateNumberOfMessages']) + int(x['Attributes'][
                                                                              'ApproximateNumberOfMessagesDelayed'])
+
+    def create_queue(self, name: str):
+        response = self.client.create_queue(QueueName=name)
+        return response
+
+    def delete_the_queue(self, name: str):
+        self.client.delete_queue(QueueUrl=self.get_url_queue(name))
+
+    def purge_the_queue(self, name: str):
+        self.client.purge_queue(QueueUrl=self.get_url_queue(name))
