@@ -17,18 +17,17 @@ class S3(FileStorageManager):
         self.bucket = bucket
         super().__init__()
 
-    def put_file(self, file_name: str, value: BytesIO, bucket: str):
+    def put_file(self, file_name: str, value: BytesIO):
         """
         This function put some object in the bucket named (key) as send by the file_name
         :param file_name: Name to save in the bucket
         :param value: The buffer to save in the
-        :param bucket: Bucket name to save the file
         :return: None
         """
         value.seek(0)
-        self.client.upload_fileobj(value, bucket, file_name)
+        self.client.upload_fileobj(value, self.bucket, file_name)
 
-    def get_file(self, file_name: str, bucket: str) -> BytesIO:
+    def get_file(self, file_name: str) -> BytesIO:
         """
         Function that gets the file from the file_name
         :param file_name:
