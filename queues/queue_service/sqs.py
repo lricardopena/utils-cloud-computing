@@ -2,13 +2,12 @@ import json
 
 import boto3
 
-from config import REGION_AWS
 from queues.queue_manager import QueueFacade
 
 
 class SimpleQueueAmazon(QueueFacade):
 
-    def __init__(self, endpoint_url=None, region_name=REGION_AWS):
+    def __init__(self, region_name: str, endpoint_url=None):
         self.cache_url_names = {}
         self.connected = True
         self.client = boto3.client('sqs', endpoint_url=endpoint_url, region_name=region_name)
