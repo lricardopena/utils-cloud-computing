@@ -10,11 +10,11 @@ from file_storage.file_storage_manager import FileStorageManager
 
 
 class S3(FileStorageManager):
-    def __init__(self, bucket: str, region_name: str):
+    def __init__(self, bucket: str, region_name: str, endpoint_url: str = None, config = None):
         """
         :param region_name: The region to connect to AWS
         """
-        self.client = boto3.client('s3', region_name=region_name)
+        self.client = boto3.client('s3', endpoint_url=endpoint_url, region_name=region_name, config=config)
         self.paginator = self.client.get_paginator("list_objects_v2")
         self.bucket = bucket
         super().__init__()
