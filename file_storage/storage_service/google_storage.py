@@ -57,6 +57,12 @@ class GoogleStorage(FileStorageManager):
                 source_blob, self.bucket_object, os.path.join(prefix, file_name)
             )
 
+    def create_bucket(self, bucket_name: str, location: str = None):
+        bucket = self.client.bucket(bucket_name)
+        bucket.storage_class = "COLDLINE"
+        new_bucket = self.client.create_bucket(bucket, location=location)
+        return new_bucket
+
 
 class GoogleStorageFromS3(S3):
     def __init__(self, bucket: str, base_path: str, region_name: str):
