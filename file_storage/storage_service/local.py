@@ -11,35 +11,30 @@ class Local(FileStorageManager):
         super().__init__()
 
     def final_path(self, file_name):
-        finalpath = os.path.expanduser(os.path.join(self.base_path, file_name))
-        return finalpath
+        return os.path.expanduser(os.path.join(self.base_path, file_name))
 
     def put_file(self, file_name: str, value: BytesIO):
         value.seek(0)
-        finalpath = self.final_path(file_name)
-        fl = open(finalpath, "wb")
-        with fl:
+        with open(self.final_path(file_name), "wb") as fl:
             fl.write(value.read())
 
     def get_file(self, file_name: str) -> BytesIO:
         value = BytesIO()
-        finalpath = self.final_path(file_name)
-        fl = open(finalpath, "rb")
-        with fl:
+        with open(self.final_path(file_name), "rb") as fl:
             value.write(fl.read())
             value.seek(0)
             return value
 
     def delete(self, file_name: str):
-        finalpath = self.final_path(file_name)
-        if os.path.exists(finalpath):
-            os.remove(finalpath)
+        final_path = self.final_path(file_name)
+        if os.path.exists(final_path):
+            os.remove(final_path)
 
     def get_last_update(self, file_name: str) -> datetime:
-        finalpath = self.final_path(file_name)
-        if not os.path.isfile(finalpath):
+        final_path = self.final_path(file_name)
+        if not os.path.isfile(final_path):
             return datetime(1, 1, 1, 0, 0)
-        modified_time_unix = os.path.getmtime(finalpath)
+        modified_time_unix = os.path.getmtime(final_path)
         modification_time = datetime.fromtimestamp(modified_time_unix)
         return modification_time
 
