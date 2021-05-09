@@ -1,8 +1,10 @@
+import logging
 import os
 from datetime import datetime
 from io import BytesIO
 
 import boto3
+from botocore.exceptions import ClientError
 
 from file_storage.file_storage_manager import FileStorageManager
 
@@ -88,3 +90,21 @@ class S3(FileStorageManager):
 
     def delete(self, file_name: str):
         self.client.delete_object(Bucket=self.bucket, Key=os.path.join(self.base_path, file_name))
+
+    def create_bucket(self, bucket_name: str):
+        """Create an S3 bucket in a specified region
+
+        If a region is not specified, the bucket is created in the S3 default
+        region (us-east-1).
+
+        :param bucket_name: Bucket to create
+        :return: True if bucket created, else False
+        """
+
+        # Create bucket
+        try:
+            self.client.create_bucket(Bucket=bucket_name)
+        except ClientError as e:
+            logging.error(e)
+            return False
+        return True
