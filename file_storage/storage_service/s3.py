@@ -34,14 +34,14 @@ class S3(FileStorageManager):
         :return:
         """
         fl = BytesIO()
-        self.client.download_fileobj(self.bucket, os.path.join(self.base_path, file_name), fl)
+        self.client.download_fileobj(self.bucket,  file_name, fl)
         fl.seek(0)
         return fl
 
     def get_last_update(self, file_name: str) -> datetime:
         pages = self.paginator.paginate(
             Bucket=self.bucket,
-            Prefix=os.path.join(self.base_path, file_name)
+            Prefix=file_name
         )
 
         for page in pages:
